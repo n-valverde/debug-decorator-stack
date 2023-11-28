@@ -1,0 +1,34 @@
+parameters:
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/SimpleDecorator/' # Just to make things explicit
+            - '../src/DecoratorStack/' # Just to make things explicit
+            - '../src/Kernel.php'
+
+    App\SimpleDecorator\Decorated:
+        public: false
+    App\DecoratorStack\Decorated:
+        public: true # Just to prevent this id from being removed for the test assertion (not required with the above SimpleDecorator\Decorated, is that expected?)
+
+    App\SimpleDecorator\WorkingCommand:
+        tags: ['console.command']
+        arguments: ['@simple_decorator']
+    App\DecoratorStack\FailingCommand:
+        tags: ['console.command']
+        arguments: ['@decorator_stack']
+
+    simple_decorator:
+        class: App\SimpleDecorator\Decorator
+        decorates: App\SimpleDecorator\Decorated
+        tags: ['kernel.event_subscriber']
+
+    decorator_stack:
+        stack:
+            - App\DecoratorStack\Decorator: ~
+            - App\DecoratorStack\Decorated: ~
